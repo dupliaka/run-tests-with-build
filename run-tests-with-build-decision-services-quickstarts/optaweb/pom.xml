@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>run-tests-with-build-decision-services-quickstarts</artifactId>
+        <groupId>org.kie</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>optaweb</artifactId>
+
+    <properties>
+        <version.cypress.docker>3.6.0</version.cypress.docker>
+        <openshift.api-url>https://api.openshift.apps-crc.testing:6443 </openshift.api-url>
+        <openshift.user>developer</openshift.user>
+        <openshift.password>developer</openshift.password>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>employee-rostering</id>
+            <activation>
+                <property>
+                    <name>quickstart</name>
+                    <value>employee-rostering</value>
+                </property>
+            </activation>
+            <properties>
+                <test-script>test-employee-rostering-openshift.sh</test-script>
+                <quickstarts.project.unpacked>${sources.directory}/optaweb-8.6.0.redhat-2021042423/optaweb-employee-rostering/</quickstarts.project.unpacked>
+            </properties>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <artifactId>exec-maven-plugin</artifactId>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <executions>
+                                <execution>
+                                    <id>deploy-to-openshift-and-test</id>
+                                    <phase>integration-test</phase>
+                                    <goals>
+                                        <goal>exec</goal>
+                                    </goals>
+                                    <configuration>
+                                        <executable>${project.basedir}/${test-script}</executable>
+                                        <arguments>
+                                            <argument>${quickstarts.project.unpacked}</argument>
+                                            <argument>${version.cypress.docker}</argument>
+                                            <argument>${openshift.api-url}</argument>
+                                            <argument>${openshift.user}</argument>
+                                            <argument>${openshift.password}</argument>
+                                        </arguments>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+        <profile>
+            <id>openshift</id>
+            <properties>
+                <maven-arg-line>clean install -B -Denforcer.skip -Drevapi.skip -DskipTests</maven-arg-line>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <groupId>org.codehaus.mojo</groupId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

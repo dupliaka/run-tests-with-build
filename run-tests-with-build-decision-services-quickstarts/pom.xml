@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>run-tests-with-build</artifactId>
+        <groupId>org.kie</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <packaging>pom</packaging>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>run-tests-with-build-decision-services-quickstarts</artifactId>
+
+    <modules>
+        <module>optaweb</module>
+    </modules>
+    <properties>
+        <!-- We can not skip src/main/java module compilation -->
+        <maven.main.skip>false</maven.main.skip>
+        <!-- Fail build if there is any issue in tests. This is passed to maven-invoker-plugin -->
+        <maven.test.failure.ignore>false</maven.test.failure.ignore>
+    </properties>
+
+<!--download and unzip decision services    -->
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+<!--                                    TODO: move to pom-->
+                                    <groupId>org.kie.rhba</groupId>
+                                    <artifactId>kogito</artifactId>
+                                    <version>7.12.0.redhat-2021042423</version>
+                                    <classifier>decision-services-quickstarts</classifier>
+                                    <type>zip</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${sources.directory}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -22,6 +22,7 @@
     <module>run-tests-with-build-kogito-runtimes</module>
     <module>run-tests-with-build-kogito-apps</module>
     <module>run-tests-with-build-optaplanner-optawebs</module>
+    <module>run-tests-with-build-decision-services-quickstarts</module>
   </modules>
 
   <properties>
