@@ -38,6 +38,8 @@ readonly test_osm_data_url="https://github.com/kiegroup/optaweb-vehicle-routing/
 readonly openshift_api_url=$3
 readonly openshift_user=$4
 readonly openshift_password=$5
+readonly settings_file=$6
+readonly container_runtime=$7
 
 oc login -u "${openshift_user}" -p "${openshift_password}" "${openshift_api_url}" --insecure-skip-tls-verify=true
 
@@ -49,19 +51,21 @@ oc new-project "${openshift_project}"
 # make sure the project is ready
 oc get project "${openshift_project}"
 
+readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*frontend")
+[[ -d ${frontend_directory} ]] || {
+  echo "No frontend module was found in ${project_basedir} as ${frontend_directory}!"
+  display_help
+  exit 1
+}
+
 chmod u+x "${project_basedir}"/runOnOpenShift.sh
+
+replace_hash_names_in_dockerfile "${frontend_directory}/docker/Dockerfile" "${container_runtime}"
 
 yes | "${project_basedir}"/runOnOpenShift.sh test.osm.pbf DE "${test_osm_data_url}" || {
   echo "runOnOpenShift.sh failed!"
   echo "Saving logs and exiting."
   store_logs_from_pods "target"
-  exit 1
-}
-
-readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*frontend")
-[[ -d ${frontend_directory} ]] || {
-  echo "No frontend module was found in ${project_basedir} as ${frontend_directory}!"
-  display_help
   exit 1
 }
 
@@ -71,7 +75,7 @@ wait_for_url "${application_url}" 60
 
 # run the cypress test
 readonly cypress_image_version=$2
-run_cypress "${application_url}" "${frontend_directory}" "${cypress_image_version}"
+run_cypress "${application_url}" "${frontend_directory}" "${cypress_image_version}" "${container_runtime}"
 
 # store logs from pods in the target folder
 store_logs_from_pods "target"
