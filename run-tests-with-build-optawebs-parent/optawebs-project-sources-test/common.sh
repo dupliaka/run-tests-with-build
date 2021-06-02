@@ -53,20 +53,27 @@ function replace_hash_names_in_dockerfile() {
 
     if [ ! -f "${_dockerfile}" ]; then
         echo "${_dockerfile} does not exist."
+        exit 1
     fi
     # get image name from FROM operation
     _image_name="$(grep FROM "${_dockerfile}" | sed 's/FROM //')"
-    # get hash by docker/podman image inspect
-    _image_hash="$(${_container_runtime} image inspect "${_image_name}" | jq -r 'map(.RepoDigests)[0][0]' | sed -r 's/^.*@/@/')"
 
-    if [ -z "${_image_hash}" ] || [ "${_image_hash}" = "null" ]; then
-        echo "Failed to resolve $_image_name image hash for file ${_dockerfile}"
+    _repository="$(grep FROM "${_dockerfile}" | sed 's/FROM //' | sed 's;docker.io/;;'| sed 's;:*;;')"
+    _tag="$(grep FROM "${_dockerfile}" | sed 's;*:;;')"
+
+    # get authorization token
+    _token=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:$_repository:pull" | jq -r .token)
+    # get image digest for target without pulling the image
+    _digest=$(curl -s -D - -H "Authorization: Bearer ${_token}" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" https://index.docker.io/v2/${_repository}/manifests/${_tag} | grep docker-content-digest | cut -d ' ' -f 2)
+
+    if [ -z "${_digest}" ] || [ "${_digest}" = "null" ]; then
+        echo "Failed to resolve $_digest image hash for file ${_dockerfile}"
     else
     # concat image name and hash
-        _image_hash_name=$(echo "${_image_name}" | sed -r 's/:.*$//')"${_image_hash}"
-        echo "Replaced image name ${_image_name} to ${_image_hash_name}"
+    _image="${_repository}"@"${_digest}"
     # substitude new image coordinate
-        sed -r -i 's;FROM [^\\s]+$;FROM '${_image_hash_name}';' "${_dockerfile}"
+        sed -i 's;FROM*;FROM "${_image}";' "${_dockerfile}"
+        echo "Replaced image name to $(grep FROM "${_dockerfile}")"
     fi
 }
 
