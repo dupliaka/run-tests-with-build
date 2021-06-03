@@ -25,6 +25,7 @@ then
 fi
 
 readonly project_basedir=$1
+readonly cypress_image_version=$2
 [[ -d ${project_basedir} ]] || {
   echo "Project base directory $project_basedir does not exist!"
   display_help
@@ -35,13 +36,8 @@ readonly project_basedir=$1
 readonly test_osm_data_url="https://github.com/kiegroup/optaweb-vehicle-routing/raw/master/optaweb-vehicle-routing-standalone/data/openstreetmap/planet_12.032%2C53.0171_12.1024%2C53.0491.osm.pbf"
 
 # login to OpenShift
-readonly openshift_api_url=$3
-readonly openshift_user=$4
-readonly openshift_password=$5
-readonly settings_file=$6
-readonly container_runtime=$7
-
-oc login -u "${openshift_user}" -p "${openshift_password}" "${openshift_api_url}" --insecure-skip-tls-verify=true
+readonly settings_file=$3
+readonly container_runtime=$4
 
 #create new empty project
 readonly uuid=$(uuidgen)
@@ -74,7 +70,6 @@ readonly application_url="http://$(oc get route frontend -o custom-columns=:spec
 wait_for_url "${application_url}" 60
 
 # run the cypress test
-readonly cypress_image_version=$2
 run_cypress "${application_url}" "${frontend_directory}" "${cypress_image_version}" "${container_runtime}"
 
 # store logs from pods in the target folder
