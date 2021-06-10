@@ -14,7 +14,8 @@ function display_help() {
 
   echo "This script tests deployment of Optaweb Vehicle Routing on OpenShift."
   echo "Usage:"
-  echo "  ${script_name} PROJECT_BASEDIR CYPRESS_IMAGE_VERSION OPENSHIFT_API_URL OPENSHIFT_USER OPENSHIFT_PASSWORD"
+  echo "Login to your cluster on Openshift"
+  echo "  ${script_name} PROJECT_BASEDIR CYPRESS_IMAGE_VERSION"
   echo "  ${script_name} --help"
 }
 
@@ -33,13 +34,6 @@ readonly project_basedir=$1
 
 #open street map git url
 readonly test_osm_data_url="https://github.com/kiegroup/optaweb-vehicle-routing/raw/master/optaweb-vehicle-routing-standalone/data/openstreetmap/planet_12.032%2C53.0171_12.1024%2C53.0491.osm.pbf"
-
-# login to OpenShift
-readonly openshift_api_url=$3
-readonly openshift_user=$4
-readonly openshift_password=$5
-
-oc login -u "${openshift_user}" -p "${openshift_password}" "${openshift_api_url}" --insecure-skip-tls-verify=true
 
 #create new empty project
 readonly uuid=$(uuidgen)

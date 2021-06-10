@@ -118,9 +118,6 @@
                                             ${sources.directory.module.project.sources.dependency.get}/${project.sources.artifact}-${download.sources.version}
                                         </argument>
                                         <argument>${version.cypress.docker}</argument>
-                                        <argument>${openshift.api-url}</argument>
-                                        <argument>${openshift.user}</argument>
-                                        <argument>${openshift.password}</argument>
                                         <argument>${settings.xml.file}</argument>
                                         <argument>${container.runtime}</argument>
                                     </arguments>
