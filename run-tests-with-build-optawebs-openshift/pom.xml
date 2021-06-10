@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>run-tests-with-build</artifactId>
+    <groupId>org.kie</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.kie</groupId>
+  <artifactId>run-tests-with-build-optawebs-openshift</artifactId>
+  <packaging>pom</packaging>
+
+  <properties>
+    <sources.directory>${sources.directory.module.project.sources.dependency.get}</sources.directory>
+    <openshift.api-url>https://api.production.rhba.openshift-aws.rhocf-dev.com:6443</openshift.api-url>
+    <openshift.user>admin</openshift.user>
+    <openshift.password>admin</openshift.password>
+    <version.cypress.docker>3.6.0</version.cypress.docker>
+    <vrp.osm-test-data-url>https://github.com/kiegroup/optaweb-vehicle-routing/raw/master/optaweb-vehicle-routing-standalone/data/openstreetmap/planet_12.032%2C53.0171_12.1024%2C53.0491.osm.pbf</vrp.osm-test-data-url>
+  </properties>
+
+  <modules>
+    <module>../run-tests-with-build-project-sources-dependency-get</module>
+  </modules>
+
+  <dependencies>
+    <!-- define as dependency to assure reactor order -->
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>run-tests-with-build-project-sources-dependency-get</artifactId>
+      <type>pom</type>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-invoker-properties</id>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Invoking groovy script that dynamically decides if project should be included in build or not -->
+      <plugin>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>resolve-includes</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <configuration>
+          <properties>
+            <asciidoctor.skip>false</asciidoctor.skip>
+            <integration-tests>false</integration-tests>
+            <maven.main.skip>false</maven.main.skip>
+            <maven.test.failure.ignore>false</maven.test.failure.ignore>
+          </properties>
+          <parallelThreads>1</parallelThreads>
+          <!--
+          script deciding if included project is:
+            executed (either script missing or returning true)
+              or
+            skipped (when returns false or throws error) -->
+          <selectorScript>${maven.modules.resolution.selector.script.name}</selectorScript>
+          <pomIncludes>
+            <!-- includes everything, filtering is done in resolve-includes.groovy script
+            which adds invoker-run.groovy script containing 'return false' near each pom.xml
+            that should be excluded.-->
+            <pomInclude>**/pom.xml</pomInclude>
+          </pomIncludes>
+          <pomExcludes>
+            <!-- Excludes work still as expected. -->
+          </pomExcludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>openshift</id>
+      <activation>
+        <property>
+          <name>openshift</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <executions>
+              <execution>
+                <id>deploy-to-openshift-and-test</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>${project.basedir}/${project.sources.artifact}-test-script-openshift.sh</executable>
+                  <arguments>
+                    <argument>${sources.directory.module.project.sources.dependency.get}</argument>
+                    <argument>${version.cypress.docker}</argument>
+                    <argument>${openshift.api-url}</argument>
+                    <argument>${openshift.user}</argument>
+                    <argument>${openshift.password}</argument>
+                    <argument>${vrp.osm-test-data-url}</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>
