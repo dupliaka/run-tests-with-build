@@ -35,6 +35,13 @@ readonly project_basedir=$1
 #open street map git url
 readonly test_osm_data_url="https://github.com/kiegroup/optaweb-vehicle-routing/raw/master/optaweb-vehicle-routing-standalone/data/openstreetmap/planet_12.032%2C53.0171_12.1024%2C53.0491.osm.pbf"
 
+# login to OpenShift
+readonly openshift_api_url=$3
+readonly openshift_user=$4
+readonly openshift_password=$5
+
+oc login -u "${openshift_user}" -p "${openshift_password}" "${openshift_api_url}" --insecure-skip-tls-verify=true
+
 #create new empty project
 readonly uuid=$(uuidgen)
 readonly openshift_project=vehicle-routing-${uuid:0:8}
