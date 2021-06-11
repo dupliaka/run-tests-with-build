@@ -45,6 +45,13 @@ oc get project "${openshift_project}"
 
 chmod u+x "${project_basedir}"/runOnOpenShift.sh
 
+readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*frontend")
+[[ -d ${frontend_directory} ]] || {
+  echo "No frontend module was found in ${project_basedir} as ${frontend_directory}!"
+  display_help
+  exit 1
+}
+
 sed -i 's;FROM docker.io/library/nginx:1.17.5;FROM docker.io/library/nginx@sha256:922c815aa4df050d4df476e92daed4231f466acc8ee90e0e774951b0fd7195a4;' "${frontend_directory}/docker/Dockerfile"
 
 yes | "${project_basedir}"/runOnOpenShift.sh test.osm.pbf DE "${test_osm_data_url}" || {
@@ -54,12 +61,6 @@ yes | "${project_basedir}"/runOnOpenShift.sh test.osm.pbf DE "${test_osm_data_ur
   exit 1
 }
 
-readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*frontend")
-[[ -d ${frontend_directory} ]] || {
-  echo "No frontend module was found in ${project_basedir} as ${frontend_directory}!"
-  display_help
-  exit 1
-}
 
 readonly application_url="http://$(oc get route frontend -o custom-columns=:spec.host | tr -d '\n')"
 # wait for the application to become available
