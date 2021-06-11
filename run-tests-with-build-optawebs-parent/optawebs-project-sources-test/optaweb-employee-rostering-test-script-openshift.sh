@@ -53,6 +53,16 @@ chmod u+x "${project_basedir}"/runOnOpenShift.sh
 sed 's#mvn clean install -DskipTests -Dquarkus.profile=postgres#mvn clean install -DskipTests -Dquarkus.profile=postgres -Denforcer.skip -s '$settings_file'#g' "${project_basedir}"/runOnOpenShift.sh
 sed -i 's#mvn clean install -DskipTests -Dquarkus.profile=postgres#mvn clean install -DskipTests -Dquarkus.profile=postgres -Denforcer.skip -s '$settings_file'#g' "${project_basedir}"/runOnOpenShift.sh
 
+readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*frontend")
+[[ -d ${frontend_directory} ]] || {
+  echo "No frontend module was found in ${project_basedir} as ${frontend_directory}!"
+  display_help
+  exit 1
+}
+
+#replace image by digest so openshift doesn't download new image
+sed -i 's;FROM docker.io/library/nginx:1.17.5;FROM docker.io/library/nginx@sha256:922c815aa4df050d4df476e92daed4231f466acc8ee90e0e774951b0fd7195a4;' "${frontend_directory}/docker/Dockerfile"
+
 
 yes | "${project_basedir}"/runOnOpenShift.sh || {
   echo "runOnOpenShift.sh failed!"
