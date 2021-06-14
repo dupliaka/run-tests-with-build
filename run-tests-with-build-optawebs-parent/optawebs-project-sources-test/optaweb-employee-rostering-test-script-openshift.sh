@@ -63,17 +63,19 @@ readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*fron
 #replace image by digest so openshift doesn't download new image
 sed -i 's;FROM docker.io/library/nginx:1.17.5;FROM docker.io/library/nginx@sha256:922c815aa4df050d4df476e92daed4231f466acc8ee90e0e774951b0fd7195a4;' "${frontend_directory}/docker/Dockerfile"
 
+readonly standalone_directory=$(find "${project_basedir}" -maxdepth 1 -name "*standalone")
+[[ -d ${standalone_directory} ]] || {
+  echo "No standalone module was found in ${project_basedir} as ${standalone_directory}!"
+  display_help
+  exit 1
+}
+
+sed -i 's;FROM adoptopenjdk/openjdk11:ubi-minimal;FROM adoptopenjdk/openjdk11@sha256:081cbb525cd6ed4c0c14048973fa80422ba89cdb87893a255270b03d6e5294d3;' "${standalone_directory}/docker/Dockerfile"
+
 yes | "${project_basedir}"/runOnOpenShift.sh || {
   echo "runOnOpenShift.sh failed!"
   echo "Saving logs and exiting."
   store_logs_from_pods "target"
-  exit 1
-}
-
-readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*frontend")
-[[ -d ${frontend_directory} ]] || {
-  echo "No frontend module was found in ${project_basedir} as ${frontend_directory}!"
-  display_help
   exit 1
 }
 
