@@ -36,7 +36,7 @@ readonly openshift_api_url=$3
 readonly openshift_user=$4
 readonly openshift_password=$5
 readonly settings_file=$6
-readonly container_runtime=$7
+readonly container_engine=$7
 
 oc login -u "${openshift_user}" -p "${openshift_password}" "${openshift_api_url}" --insecure-skip-tls-verify=true
 
@@ -83,7 +83,7 @@ wait_for_url "${application_url}" 60
 
 # run the cypress test
 readonly cypress_image_version=$2
-run_cypress "${application_url}" "${frontend_directory}" "${cypress_image_version}" "${container_runtime}"
+run_cypress "${application_url}" "${frontend_directory}" "${cypress_image_version}" "${container_engine}"
 
 # store logs from all pods in the project
 store_logs_from_pods "target"
