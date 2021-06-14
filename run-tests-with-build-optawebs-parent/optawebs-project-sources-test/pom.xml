@@ -19,7 +19,6 @@
         <openshift.password>developer</openshift.password>
         <version.cypress.docker>3.6.0</version.cypress.docker>
         <container.runtime>podman</container.runtime>
-        <skip.component.tests>false</skip.component.tests>
     </properties>
 
     <dependencies>
@@ -61,9 +60,6 @@
                 <artifactId>maven-invoker-plugin</artifactId>
                 <configuration>
                     <parallelThreads>1</parallelThreads>
-                    <properties>
-                        <maven.test.skip>${skip.component.tests}</maven.test.skip>
-                    </properties>
                     <!--
                     script deciding if included project is:
                       executed (either script missing or returning true)
@@ -74,7 +70,7 @@
                         <!-- includes everything, filtering is done in resolve-includes.groovy script
                         which adds invoker-run.groovy script containing 'return false' near each pom.xml
                         that should be excluded.-->
-                        <pomInclude>**/pom.xml</pomInclude>
+                        <pomInclude>**/pom.xml</pomInclude>ad
                     </pomIncludes>
                     <pomExcludes>
                         <!-- Excludes work still as expected. -->
@@ -90,7 +86,7 @@
                 <!-- Relying on profile activation property from run-tests-with-build-project-sources-dependency-get module.
                 Enforcer of that module assures that the value is set properly.-->
                 <optaweb.project.name>${project.sources.artifact}</optaweb.project.name>
-                <skip.component.tests>true</skip.component.tests>
+                <maven.test.skip>true</maven.test.skip>
             </properties>
             <activation>
                 <property>
