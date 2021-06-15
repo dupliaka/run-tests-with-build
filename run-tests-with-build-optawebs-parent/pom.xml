@@ -21,6 +21,7 @@
         <!-- just for enforcer activation section of profiles does not interpolate properties -->
         <activation.property.name>test.type</activation.property.name>
         <enforcer.regex.activation.property>^(${enforcer.test.type.sources.zip}|${enforcer.test.type.project.sources}|${enforcer.test.type.quickstarts.zip})$</enforcer.regex.activation.property>
+        <skip.invoker.tests>false</skip.invoker.tests>
     </properties>
     <build>
         <plugins>
@@ -57,7 +58,7 @@
                     <configuration>
                         <parallelThreads>1</parallelThreads>
                         <properties>
-                            <skipTests>true</skipTests>
+                            <skipTests>${skip.invoker.tests}</skipTests>
                             <asciidoctor.skip>false</asciidoctor.skip>
                             <integration-tests>${integration-tests}</integration-tests>
                             <container.runtime>${container.runtime}</container.runtime>

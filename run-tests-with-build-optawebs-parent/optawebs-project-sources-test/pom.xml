@@ -70,7 +70,7 @@
                         <!-- includes everything, filtering is done in resolve-includes.groovy script
                         which adds invoker-run.groovy script containing 'return false' near each pom.xml
                         that should be excluded.-->
-                        <pomInclude>**/pom.xml</pomInclude>ad
+                        <pomInclude>**/pom.xml</pomInclude>
                     </pomIncludes>
                     <pomExcludes>
                         <!-- Excludes work still as expected. -->
@@ -83,6 +83,7 @@
         <profile>
             <id>openshift</id>
             <properties>
+                <skip.invoker.tests>${skipTests}</skip.invoker.tests>
                 <!-- Relying on profile activation property from run-tests-with-build-project-sources-dependency-get module.
                 Enforcer of that module assures that the value is set properly.-->
                 <optaweb.project.name>${project.sources.artifact}</optaweb.project.name>
