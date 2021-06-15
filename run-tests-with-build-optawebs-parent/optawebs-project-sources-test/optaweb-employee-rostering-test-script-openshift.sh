@@ -81,7 +81,7 @@ yes | "${project_basedir}"/runOnOpenShift.sh || {
 
 readonly application_url="http://$(oc get route standalone -o custom-columns=:spec.host | tr -d '\n')"
 #wait for the application to become available
-wait_for_url "${application_url}" 120
+wait_for_url "${application_url}" 60
 
 # run the cypress test
 readonly cypress_image_version=$2
@@ -91,4 +91,4 @@ run_cypress "${application_url}" "${frontend_directory}" "${cypress_image_versio
 store_logs_from_pods "target"
 
 # delete the project after the test run
-oc delete project "${openshift_project}"
+#oc delete project "${openshift_project}"
