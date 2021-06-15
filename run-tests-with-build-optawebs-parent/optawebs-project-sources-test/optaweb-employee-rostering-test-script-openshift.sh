@@ -70,7 +70,7 @@ readonly standalone_directory=$(find "${project_basedir}" -maxdepth 1 -name "*st
   exit 1
 }
 
-sed -i 's;FROM adoptopenjdk/openjdk11:ubi-minimal;FROM adoptopenjdk/openjdk11@sha256:081cbb525cd6ed4c0c14048973fa80422ba89cdb87893a255270b03d6e5294d3;' "${standalone_directory}/docker/Dockerfile"
+sed -i 's;FROM adoptopenjdk/openjdk11:ubi-minimal;FROM adoptopenjdk/openjdk11@sha256:081cbb525cd6ed4c0c14048973fa80422ba89cdb87893a255270b03d6e5294d3;' "${standalone_directory}/Dockerfile"
 
 yes | "${project_basedir}"/runOnOpenShift.sh || {
   echo "runOnOpenShift.sh failed!"
