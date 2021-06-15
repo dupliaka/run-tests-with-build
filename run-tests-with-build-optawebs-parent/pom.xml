@@ -57,6 +57,7 @@
                     <configuration>
                         <parallelThreads>1</parallelThreads>
                         <properties>
+                            <skipTests>true</skipTests>
                             <asciidoctor.skip>false</asciidoctor.skip>
                             <integration-tests>${integration-tests}</integration-tests>
                             <container.runtime>${container.runtime}</container.runtime>
