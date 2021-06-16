@@ -30,7 +30,7 @@ function wait_for_url() {
   local _spent=0
   while [[ "200" != $(curl -LI "${_application_url}" -o /dev/null -w '%{http_code}' -s) ]]; do
     if [[ "${_spent}" -eq "${_timeout_seconds}" ]]; then
-      echo "[ERROR] Timeout ${_application_url} is not reachable"
+      echo "Timeout ${_application_url} is not reachable"
       store_logs_from_pods "target"
       exit 1
     fi
