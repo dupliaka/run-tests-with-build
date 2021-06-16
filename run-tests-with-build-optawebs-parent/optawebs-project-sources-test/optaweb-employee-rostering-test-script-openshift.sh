@@ -18,14 +18,14 @@ function display_help() {
   echo "  ${script_name} --help"
 }
 
-if [[ $1 == "--help" ]]
+if [[ "$1" == "--help" ]]
 then
   display_help
   exit 0
 fi
 
 readonly project_basedir=$1
-[[ -d ${project_basedir} ]] || {
+[[ -d "${project_basedir}" ]] || {
   echo "Project base directory $project_basedir does not exist!"
   display_help
   exit 1
@@ -50,8 +50,10 @@ oc get project "${openshift_project}"
 
 chmod u+x "${project_basedir}"/runOnOpenShift.sh
 
-sed 's#mvn clean install -DskipTests -Dquarkus.profile=postgres#mvn clean install -DskipTests -Dquarkus.profile=postgres -Denforcer.skip -s '$settings_file'#g' "${project_basedir}"/runOnOpenShift.sh
+# pass settings file and skip enforcer to be able to test artifacts from bxms-qe
 sed -i 's#mvn clean install -DskipTests -Dquarkus.profile=postgres#mvn clean install -DskipTests -Dquarkus.profile=postgres -Denforcer.skip -s '$settings_file'#g' "${project_basedir}"/runOnOpenShift.sh
+# increase possible postgresql memory consumption
+sed -i 's/oc new-app --name postgresql postgresql-persistent/oc new-app --name postgresql postgresql-persistent -p MAX_MEMORY=2GiB/' "${project_basedir}"/runOnOpenShift.sh
 
 readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*frontend")
 [[ -d ${frontend_directory} ]] || {
@@ -60,7 +62,7 @@ readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*fron
   exit 1
 }
 
-#replace image by digest so openshift doesn't download new image
+#replace image by digest so openshift doesn't download new image, avoids docker pulling limitation
 sed -i 's;FROM docker.io/library/nginx:1.17.5;FROM docker.io/library/nginx@sha256:922c815aa4df050d4df476e92daed4231f466acc8ee90e0e774951b0fd7195a4;' "${frontend_directory}/docker/Dockerfile"
 
 readonly standalone_directory=$(find "${project_basedir}" -maxdepth 1 -name "*standalone")
@@ -70,6 +72,7 @@ readonly standalone_directory=$(find "${project_basedir}" -maxdepth 1 -name "*st
   exit 1
 }
 
+#replace image by digest so openshift doesn't download new image, avoids docker pulling limitation
 sed -i 's;FROM adoptopenjdk/openjdk11:ubi-minimal;FROM adoptopenjdk/openjdk11@sha256:081cbb525cd6ed4c0c14048973fa80422ba89cdb87893a255270b03d6e5294d3;' "${standalone_directory}/Dockerfile"
 
 yes | "${project_basedir}"/runOnOpenShift.sh || {
@@ -91,4 +94,4 @@ run_cypress "${application_url}" "${frontend_directory}" "${cypress_image_versio
 store_logs_from_pods "target"
 
 # delete the project after the test run
-#oc delete project "${openshift_project}"
+oc delete project "${openshift_project}"
