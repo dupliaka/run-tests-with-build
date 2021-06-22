@@ -28,13 +28,9 @@ function wait_for_url() {
   local _increment=1
 
   local _spent=0
-  while [[ "200" != $(curl -LI "${_application_url}" -o /dev/null -w '%{http_code}' -s) ]]; do
-    if [[ "${_spent}" -eq "${_timeout_seconds}" ]]; then
-      echo "Timeout ${_application_url} is not reachable"
-      store_logs_from_pods "target"
-      exit 1
-    fi
-    sleep "${_increment}"
+  while [[ "200" != $(curl -LI "${_application_url}" -o /dev/null -w '%{http_code}' -s) && ${_spent} -lt ${_timeout_seconds} ]]
+  do
+    sleep ${_increment}
     _spent=$((_spent + _increment))
     echo "Waiting for ${_spent} seconds for ${_application_url} to become available."
   done
@@ -43,7 +39,8 @@ function wait_for_url() {
 # Stores logs from all pods in the project
 function store_logs_from_pods() {
   local _target_directory=$1
-  for pod in $(oc get pods -o name); do
+  for pod in $(oc get pods -o name)
+  do
     sanitized_pod=${pod#"pod/"}
     oc logs "${sanitized_pod}" > "${_target_directory}/${sanitized_pod}.log"
   done

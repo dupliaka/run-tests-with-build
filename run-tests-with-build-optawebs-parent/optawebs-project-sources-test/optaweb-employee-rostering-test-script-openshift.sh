@@ -18,14 +18,14 @@ function display_help() {
   echo "  ${script_name} --help"
 }
 
-if [[ "$1" == "--help" ]]
+if [[ $1 == "--help" ]]
 then
   display_help
   exit 0
 fi
 
 readonly project_basedir=$1
-[[ -d "${project_basedir}" ]] || {
+[[ -d ${project_basedir} ]] || {
   echo "Project base directory $project_basedir does not exist!"
   display_help
   exit 1
@@ -36,7 +36,7 @@ readonly openshift_api_url=$3
 readonly openshift_user=$4
 readonly openshift_password=$5
 readonly settings_file=$6
-readonly container_engine=$7
+readonly container_runtime=$7
 
 oc login -u "${openshift_user}" -p "${openshift_password}" "${openshift_api_url}" --insecure-skip-tls-verify=true
 
@@ -50,37 +50,21 @@ oc get project "${openshift_project}"
 
 chmod u+x "${project_basedir}"/runOnOpenShift.sh
 
-# pass settings file and skip enforcer to be able to test artifacts from bxms-qe
+sed 's#mvn clean install -DskipTests -Dquarkus.profile=postgres#mvn clean install -DskipTests -Dquarkus.profile=postgres -Denforcer.skip -s '$settings_file'#g' "${project_basedir}"/runOnOpenShift.sh
 sed -i 's#mvn clean install -DskipTests -Dquarkus.profile=postgres#mvn clean install -DskipTests -Dquarkus.profile=postgres -Denforcer.skip -s '$settings_file'#g' "${project_basedir}"/runOnOpenShift.sh
-# increase possible postgresql memory consumption
-sed -i 's/oc new-app --name postgresql postgresql-persistent/oc new-app --name postgresql postgresql-persistent -p MEMORY_LIMIT=2Gi/' "${project_basedir}"/runOnOpenShift.sh
 
-readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*frontend")
-[[ -d ${frontend_directory} ]] || {
-  echo "No frontend module was found in ${project_basedir} as ${frontend_directory}!"
-  display_help
-  exit 1
-}
-
-# replace image by digest so openshift doesn't download new image, avoids docker pulling limitation
-# additionally edit mirror configuration on the Openshift
-sed -i 's;FROM docker.io/library/nginx:1.17.5;FROM docker.io/library/nginx@sha256:922c815aa4df050d4df476e92daed4231f466acc8ee90e0e774951b0fd7195a4;' "${frontend_directory}/docker/Dockerfile"
-
-readonly standalone_directory=$(find "${project_basedir}" -maxdepth 1 -name "*standalone")
-[[ -d ${standalone_directory} ]] || {
-  echo "No standalone module was found in ${project_basedir} as ${standalone_directory}!"
-  display_help
-  exit 1
-}
-
-# replace image by digest so openshift doesn't download new image, avoids docker pulling limitation
-# additionally edit mirror configuration on the Openshift
-sed -i 's;FROM adoptopenjdk/openjdk11:ubi-minimal;FROM adoptopenjdk/openjdk11@sha256:081cbb525cd6ed4c0c14048973fa80422ba89cdb87893a255270b03d6e5294d3;' "${standalone_directory}/Dockerfile"
 
 yes | "${project_basedir}"/runOnOpenShift.sh || {
   echo "runOnOpenShift.sh failed!"
   echo "Saving logs and exiting."
   store_logs_from_pods "target"
+  exit 1
+}
+
+readonly frontend_directory=$(find "${project_basedir}" -maxdepth 1 -name "*frontend")
+[[ -d ${frontend_directory} ]] || {
+  echo "No frontend module was found in ${project_basedir} as ${frontend_directory}!"
+  display_help
   exit 1
 }
 
@@ -90,7 +74,7 @@ wait_for_url "${application_url}" 60
 
 # run the cypress test
 readonly cypress_image_version=$2
-run_cypress "${application_url}" "${frontend_directory}" "${cypress_image_version}" "${container_engine}"
+run_cypress "${application_url}" "${frontend_directory}" "${cypress_image_version}" "${container_runtime}"
 
 # store logs from all pods in the project
 store_logs_from_pods "target"

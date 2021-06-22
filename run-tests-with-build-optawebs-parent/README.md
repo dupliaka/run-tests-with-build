@@ -50,7 +50,6 @@ mvn clean verify \
 ### Additional configuration
 * `-Dintegration-tests={true|false}` run integration cypress tests on docker
 * `-Dcontainer.runtime={docker|podman}` change runtime
-* `-Dskip.invoker.tests={true|false}` skip JUnit tests during build of the modules 
 
 ## Module structure
 Each of sub-modules contains configuration for Maven Invoker related settings.
